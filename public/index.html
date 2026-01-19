@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mini QA Automation Lab</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #222;
+            margin-bottom: 40px;
+            font-size: 2em;
+        }
+
+        .tests-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .test-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .test-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .test-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+
+        .test-button {
+            display: block;
+            margin: 0 auto;
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: #fff;
+            transition: background-color 0.2s;
+        }
+
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            min-height: 40px;
+            font-weight: 500;
+            text-align: center;
+            color: #fff;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .result.ok {
+            background-color: #28a745;
+        }
+
+        .result.fail {
+            background-color: #dc3545;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg);}
+            100% { transform: rotate(360deg);}
+        }
+
+        .screenshot {
+            margin-top: 15px;
+            max-width: 100%;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1>QA Automation Test</h1>
+
+<div class="tests-container">
+
+    <div class="test-card">
+        <div class="test-title">Test site</div>
+        <button class="test-button" onclick="runTest('testSiteResult','screenshot.png','screenshot_test')">Lancer test</button>
+        <div id="testSiteResult" class="result"></div>
+        <img id="screenshot_test" class="screenshot">
+    </div>
+
+    <div class="test-card">
+        <div class="test-title">Login automatique</div>
+        <button class="test-button" onclick="runLogin('loginResult','login_screenshot.png','screenshot_login')">Lancer test</button>
+        <div id="loginResult" class="result"></div>
+        <img id="screenshot_login" class="screenshot">
+    </div>
+
+    <div class="test-card">
+        <div class="test-title">Test message d’erreur</div>
+        <button class="test-button" onclick="runError('errorResult','error_screenshot.png','screenshot_error')">Lancer test</button>
+        <div id="errorResult" class="result"></div>
+        <img id="screenshot_error" class="screenshot">
+    </div>
+
+</div>
+
+<script>
+    function updateResult(id, text) {
+        const el = document.getElementById(id);
+        const cleanText = text.replace(/<\/?pre>/g, "").trim();
+
+        if (cleanText.toLowerCase().includes("ok")) {
+            el.className = "result ok";
+        } else {
+            el.className = "result fail";
+        }
+        el.innerText = cleanText;
+    }
+
+    function showScreenshot(imgId, filename) {
+        const img = document.getElementById(imgId);
+        img.src = filename + "?t=" + new Date().getTime(); // cache-buster
+        img.style.display = "block";
+    }
+
+    function runTest(resultId, filename, imgId) {
+        const el = document.getElementById(resultId);
+        el.innerHTML = '<div class="loader"></div>';
+        fetch("/run-test").then(res => res.text()).then(data => {
+            updateResult(resultId, data);
+            showScreenshot(imgId, filename);
+        });
+    }
+
+    function runLogin(resultId, filename, imgId) {
+        const el = document.getElementById(resultId);
+        el.innerHTML = '<div class="loader"></div>';
+        fetch("/run-login").then(res => res.text()).then(data => {
+            updateResult(resultId, data);
+            showScreenshot(imgId, filename);
+        });
+    }
+
+    function runError(resultId, filename, imgId) {
+        const el = document.getElementById(resultId);
+        el.innerHTML = '<div class="loader"></div>';
+        fetch("/run-error").then(res => res.text()).then(data => {
+            updateResult(resultId, data);
+            showScreenshot(imgId, filename);
+        });
+    }
+</script>
+
+</body>
+</html>
